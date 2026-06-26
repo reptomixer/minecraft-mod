@@ -1,7 +1,5 @@
 name: Bedrock Mod Test
 on:
-  schedule:
-    - cron: '13 */6 * * *'
   workflow_dispatch:
 
 jobs:
@@ -71,3 +69,8 @@ jobs:
             "release-${RELEASE_TAG}.zip" \
             --title "Server State $RELEASE_TAG" \
             --notes "Auto-snapshot created at $RELEASE_TAG"
+      - name: Finish job
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
+        run: |
+          gh workflow run mcpe.yml
