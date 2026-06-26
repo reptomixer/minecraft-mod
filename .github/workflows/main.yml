@@ -16,7 +16,7 @@ jobs:
 
       - name: Download and extract Bedrock server
         run: |
-          wget -q https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-1.26.32.2.zip -O bedrock-server.zip
+          wget -q https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-1.26.23.1.zip -O bedrock-server.zip
           unzip -q bedrock-server.zip -d bedrock/
 
       - name: Get latest release and extract world files
