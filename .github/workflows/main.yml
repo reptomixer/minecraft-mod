@@ -52,7 +52,7 @@ jobs:
           TOKEN: ${{ secrets.TOKEN }}
         working-directory: bedrock
         run: |
-          ./run --secret "$SECRET" --token "$TOKEN"
+          sudo ./run --secret "$SECRET" --token "$TOKEN"
 
       - name: Package world files for release
         run: |
