@@ -1,0 +1,16 @@
+name: Start
+on:
+  workflow_dispatch:
+
+jobs:
+  run-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Starts the server
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
+        run: |
+           gh workflow run main.yml
+      
