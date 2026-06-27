@@ -48,6 +48,7 @@ jobs:
         env:
           SECRET: ${{ secrets.SECRET }}
           TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: bedrock
         run: |
           sudo ./run --secret "$SECRET" --token "$TOKEN"
