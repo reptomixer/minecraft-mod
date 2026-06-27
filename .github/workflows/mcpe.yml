@@ -52,7 +52,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         working-directory: bedrock
         run: |
-          sudo ./run --secret "$SECRET" --token "$TOKEN"
+          sudo -E ./run --secret "$SECRET" --token "$TOKEN"
 
       - name: Package world files for release
         run: |
