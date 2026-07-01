@@ -1,0 +1,81 @@
+name: Bedrock Mod Test
+on:
+  workflow_dispatch:
+
+jobs:
+  run-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create bedrock folder
+        run: mkdir -p bedrock
+
+      - name: Download and extract Bedrock server
+        run: |
+          wget -q https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-1.26.23.1.zip -O bedrock-server.zip
+          unzip -q bedrock-server.zip -d bedrock/
+
+      - name: Get latest release and extract world files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LATEST_RELEASE=$(gh release list --limit 1 --json tagName -q '.[0].tagName')
+          echo "Latest release tag: $LATEST_RELEASE"
+
+          if [ -z "$LATEST_RELEASE" ]; then
+            echo "No releases found, skipping world restore."
+          else
+            gh release download "$LATEST_RELEASE" --dir release-files/
+            ZIPFILE=$(ls release-files/*.zip | head -n 1)
+            echo "Extracting $ZIPFILE into bedrock/"
+            unzip -o -q "$ZIPFILE" -d bedrock/
+          fi
+
+      - name: Download and prepare playit binary
+        run: |
+          wget -q https://builds.playit.gg/1.0.10/playit-linux-amd64 -O bedrock/playit
+          chmod +x bedrock/playit
+
+      - name: Prepare run binary
+        run: |
+          chmod +x bedrock/run
+
+      - name: Run server
+        env:
+          SECRET: ${{ secrets.SECRET }}
+          TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GROUP: ${{ secrets.GROUP }}
+          DCTOKEN: ${{ secrets.DCTOKEN }}
+          DCCHAN: ${{ secrets.DCCHAN }}
+        working-directory: bedrock
+        run: |
+          sudo -E ./run --secret "$SECRET" --token "$TOKEN" --group "$GROUP" --dct "$DCTOKEN" --dcc "$DCCHAN"
+
+      - name: Package files for release
+        run: |
+          TZ="Asia/Dhaka" TAG=$(date '+%Y-%m-%d_%H-%M-%S')_BDT
+          echo "RELEASE_TAG=$TAG" >> $GITHUB_ENV
+
+          cd bedrock
+          zip -r "../release-${TAG}.zip" worlds/ server.properties allowlist.json run
+          echo "Created release-${TAG}.zip"
+
+      - name: Create GitHub release with world files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            "release-${RELEASE_TAG}.zip" \
+            --title "Server State $RELEASE_TAG" \
+            --notes "Auto-snapshot created at $RELEASE_TAG"
+      - name: Finish job
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
+        run: |
+          gh workflow run mcpe.yml
